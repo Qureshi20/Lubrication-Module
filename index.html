@@ -1,22 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RPL Converting Section - TPM Portal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background-color: #0f172a; color: #e2e8f0; font-family: system-ui, -apple-system, sans-serif; }
+        .card { background-color: #1e293b; border: 1px solid #334155; }
+        .status-critical { color: #f87171; background-color: rgba(248, 113, 113, 0.1); border: 1px solid #7f1d1d; }
+        .status-overdue { color: #f43f5e; background-color: rgba(244, 63, 94, 0.1); border: 1px solid #881337; }
+        .sidebar { background-color: #162032; border-right: 1px solid #1e293b; }
+    </style>
+</head>
+<body class="flex h-screen overflow-hidden">
 
-// Import the functions you need from the SDKs you need
-import { initializeApp } from "firebase/app";
-import { getAnalytics } from "firebase/analytics";
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
+    <!-- Login Screen -->
+    <div id="login-screen" class="fixed inset-0 bg-slate-900 flex items-center justify-center z-50">
+        <div class="card p-8 rounded-xl shadow-2xl w-96">
+            <div class="flex items-center gap-3 mb-6">
+                <div class="w-8 h-8 bg-blue-500 rounded flex items-center justify-center font-bold text-white">RPL</div>
+                <h2 class="text-2xl font-semibold text-white">Converting Section</h2>
+            </div>
+            <p class="text-slate-400 mb-6">Sign in to access TPM & Lubrication tracking.</p>
+            
+            <input type="email" id="email" placeholder="Operator Email" class="w-full mb-4 p-3 bg-slate-800 border border-slate-600 rounded text-white focus:outline-none focus:border-blue-500">
+            <input type="password" id="password" placeholder="Password" class="w-full mb-6 p-3 bg-slate-800 border border-slate-600 rounded text-white focus:outline-none focus:border-blue-500">
+            
+            <button id="login-btn" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-medium py-3 px-4 rounded transition-colors">
+                Sign In
+            </button>
+            <p id="error-msg" class="text-red-400 mt-4 text-sm hidden text-center"></p>
+        </div>
+    </div>
 
-// Your web app's Firebase configuration
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
-const firebaseConfig = {
-  apiKey: "AIzaSyDwwTwaNxCfZlcaOQReVvACN2HvPIHFJx4",
-  authDomain: "lubrication-project-corr.firebaseapp.com",
-  projectId: "lubrication-project-corr",
-  storageBucket: "lubrication-project-corr.firebasestorage.app",
-  messagingSenderId: "807886561613",
-  appId: "1:807886561613:web:ce08ea1c6c188f21679704",
-  measurementId: "G-0FPPR5SRSN"
-};
+    <!-- Main Dashboard (Hidden until login) -->
+    <div id="main-app" class="flex w-full hidden">
+        
+        <!-- Sidebar -->
+        <aside class="sidebar w-64 flex flex-col p-4 hidden md:flex">
+            <div class="flex items-center gap-2 mb-8 text-blue-400 font-bold text-lg">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
+                Uptime Guard
+            </div>
+            <nav class="space-y-2 text-sm text-slate-400 font-medium">
+                <a href="#" class="flex items-center gap-3 p-3 bg-blue-600/10 text-blue-400 rounded-lg"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg> Tasks</a>
+                <a href="#" class="flex items-center gap-3 p-3 hover:text-white transition-colors"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg> Alerts</a>
+                <a href="#" class="flex items-center gap-3 p-3 hover:text-white transition-colors"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg> Machines</a>
+            </nav>
+            <div class="mt-auto pb-4">
+                <button id="logout-btn" class="flex items-center gap-3 p-3 w-full text-left text-slate-400 hover:text-white transition-colors text-sm">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+                    Sign Out
+                </button>
+            </div>
+        </aside>
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
+        <!-- Main Content -->
+        <main class="flex-1 p-8 overflow-y-auto">
+            <div class="flex justify-between items-center mb-8">
+                <h1 class="text-3xl font-bold text-white">Lubrication Tasks</h1>
+                <select class="bg-slate-800 border border-slate-600 text-sm rounded-lg p-2.5 focus:outline-none focus:border-blue-500">
+                    <option>B Flute (BF)</option>
+                    <option>C Flute (CF)</option>
+                </select>
+            </div>
+
+            <!-- HPA-A Section -->
+            <div class="mb-8">
+                <h2 class="text-slate-400 font-semibold mb-4 tracking-wider text-sm">HPA-A</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    
+                    <!-- Task Card -->
+                    <div class="card rounded-xl p-5 flex flex-col justify-between">
+                        <div class="flex justify-between items-start mb-4">
+                            <div class="flex gap-3">
+                                <div class="w-12 h-12 bg-slate-700 rounded flex items-center justify-center shrink-0">
+                                    <span class="text-xs text-slate-400">Img</span>
+                                </div>
+                                <div>
+                                    <h3 class="font-bold text-white">HPA-A</h3>
+                                    <p class="text-xs text-slate-400 mt-1">Re-Lubrication of Bearings of Guide Rolls</p>
+                                </div>
+                            </div>
+                            <span class="status-overdue text-xs px-2 py-1 rounded font-medium">Overdue</span>
+                        </div>
+                        <div class="grid grid-cols-2 gap-y-2 text-xs text-slate-400 mb-5">
+                            <div>Points: <span class="text-white">2</span></div>
+                            <div>Lube points: <span class="text-white">20</span></div>
+                            <div>Frequency: <span class="text-white">2 Weeks</span></div>
+                            <div>Lubricant: <span class="text-white">(Gadus) S2 V 220</span></div>
+                            <div>Last done: <span class="text-white">10 Sept 2026</span></div>
+                            <div>Next due: <span class="text-red-400">24 Sept 2026</span></div>
+                        </div>
+                        <button class="w-full py-2 bg-slate-700 hover:bg-slate-600 border border-slate-600 rounded text-sm text-white font-medium transition-colors flex items-center justify-center gap-2" onclick="completeTask(this)">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg>
+                            Check off (20 lubrication points)
+                        </button>
+                    </div>
+
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- Firebase SDK Setup -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
+        import { getFirestore } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
+
+        // Your exact project connection keys
+        const firebaseConfig = {
+            apiKey: "AIzaSyDwwTwaNXCfZlcaOQReVvACN2HvPIHFJx4",
+            authDomain: "lubrication-project-corr.firebaseapp.com",
+            projectId: "lubrication-project-corr",
+            storageBucket: "lubrication-project-corr.firebasestorage.app",
+            messagingSenderId: "807886561613",
+            appId: "1:807886561613:web:ce08ea1c6c188f21679704",
+            measurementId: "G-0FPPR5SRSN"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // UI Elements
+        const loginScreen = document.getElementById('login-screen');
+        const mainApp = document.getElementById('main-app');
+        const loginBtn = document.getElementById('login-btn');
+        const logoutBtn = document.getElementById('logout-btn');
+        const emailInput = document.getElementById('email');
+        const passwordInput = document.getElementById('password');
+        const errorMsg = document.getElementById('error-msg');
+
+        // Check if user is already logged in
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                loginScreen.classList.add('hidden');
+                mainApp.classList.remove('hidden');
+            } else {
+                loginScreen.classList.remove('hidden');
+                mainApp.classList.add('hidden');
+            }
+        });
+
+        // Login Logic
+        loginBtn.addEventListener('click', () => {
+            const email = emailInput.value;
+            const password = passwordInput.value;
+            errorMsg.classList.add('hidden');
+            
+            signInWithEmailAndPassword(auth, email, password)
+                .catch((error) => {
+                    errorMsg.textContent = "Invalid email or password.";
+                    errorMsg.classList.remove('hidden');
+                });
+        });
+
+        // Logout Logic
+        logoutBtn.addEventListener('click', () => {
+            signOut(auth);
+        });
+
+        // Simple frontend simulation for checking off tasks
+        window.completeTask = function(buttonElement) {
+            buttonElement.innerHTML = `<svg class="w-4 h-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg> Task Completed`;
+            buttonElement.classList.remove('bg-slate-700', 'hover:bg-slate-600');
+            buttonElement.classList.add('bg-green-900/30', 'border-green-800', 'text-green-400', 'cursor-default');
+            buttonElement.disabled = true;
+            
+            const card = buttonElement.closest('.card');
+            const statusBadge = card.querySelector('.status-overdue');
+            if(statusBadge) {
+                statusBadge.className = 'text-green-400 bg-green-900/30 border border-green-800 text-xs px-2 py-1 rounded font-medium';
+                statusBadge.textContent = 'Up to Date';
+            }
+        }
+    </script>
+</body>
+</html>
