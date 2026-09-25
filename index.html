@@ -145,16 +145,16 @@
                 mainApp.classList.add('hidden');
             }
         });
-
-        // Login Logic
+       // Login Logic
         loginBtn.addEventListener('click', () => {
-            const email = emailInput.value;
+            const email = emailInput.value.trim(); // The .trim() removes invisible blank spaces
             const password = passwordInput.value;
             errorMsg.classList.add('hidden');
             
             signInWithEmailAndPassword(auth, email, password)
                 .catch((error) => {
-                    errorMsg.textContent = "Invalid email or password.";
+                    // This will print the exact Firebase error code to your screen
+                    errorMsg.textContent = "Error: " + error.code;
                     errorMsg.classList.remove('hidden');
                 });
         });
